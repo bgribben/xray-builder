@@ -1,5 +1,8 @@
 from bs4 import BeautifulSoup
 import sqlite3
+import os
+
+os.remove('./test.db')
 
 tables = [  "CREATE TABLE excerpt(id INTEGER, start INTEGER, length INTEGER, image TEXT, related_entities TEXT, goto INTEGER, PRIMARY KEY(id))",
             "CREATE TABLE entity(id INTEGER, label TEXT, loc_label INTEGER, type INTEGER, count INTEGER, has_info_card TINYINT, PRIMARY KEY(id))",
@@ -24,13 +27,15 @@ for table in tables:
     c.execute(table)
 
 for x in soup.select("#WikiModule_Characters ul.li_6 li"):
-    print x.text.partition(':')[2].replace("'", "''")
     c.execute("INSERT INTO entity (label, type, has_info_card) VALUES ('{0}', 1, 1)".format(x.text.partition(":")[0].replace("'", "\\'")))
     c.execute("INSERT INTO entity_description (text, entity) VALUES ('{0}', {1})".format(x.text.partition(":")[2].replace(u"\u2018", "'").replace(u"\u2019", "'").replace("'", "''"), entityId))
     entityId+=1
-    
 
-    
+for x in soup.select("#WikiModule_Settings ul.li_6 li"):
+	c.execute("INSERT INTO entity (label, type, has_info_card) VALUES ('{0}', 2, 1)".format(x.text.partition(":")[0].replace("'", "\\'")))
+	c.execute("INSERT INTO entity_description (text, entity) VALUES ('{0}', {1})".format(x.text.partition(":")[2].replace(u"\u2018", "'").replace(u"\u2019", "'").replace("'", "''"), entityId))
+	entityId+=1
+
 conn.commit()
 conn.close()
 
